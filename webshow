@@ -18,7 +18,7 @@ use strict;
 	my $cols    = 5;				# Number of thumbnails per row
 	my $fileno  = 0;
 
-	my ($title, $page, $description, $copyright, $filename, $nextname);
+	my ($title, $page, $description, $copyright, $googlemetrics, $filename, $nextname);
 	my ($x, $first, $last, $num, $mon, $mday, $year, $string, $photos);
 	my ($wantOriginals, @lines);
 	my @months = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
@@ -84,6 +84,12 @@ use strict;
 			}
 		if ($lines[0] =~ s/^\+copyright://i) {
 			$copyright = $lines[0];
+			shift(@lines);
+			--$fileno;
+			next;
+			}
+		if ($lines[0] =~ s/^\+googlemetrics://i) {
+			$googlemetrics = $lines[0];
 			shift(@lines);
 			--$fileno;
 			next;
@@ -180,8 +186,24 @@ THUMBSTUFF
 	print INDEX "</tr>\n </table><p>\n";
 	print INDEX qq(<span class="sm">Produced by Marc's );
 	print INDEX qq("<a href="http://www.micapeak.com/webshow">webshow</a>" );
-	print INDEX qq(Perl script v1.5 on $string<br>);
+	print INDEX qq( ****** Perl script v1.5 on $string<br>);
 	print INDEX qq($copyright\n</span></div>\n);
+	if ($googlemetrics) {
+	print INDEX qq(<!-- Google Analytics -->\n
+<script type="text/javascript">\n
+\n
+  var _gaq = _gaq || [];\n
+  _gaq.push(['_setAccount', '$googlemetrics']);\n
+  _gaq.push(['_trackPageview']);\n
+\n
+  (function() {\n
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;\n
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';\n
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();\n
+\n
+</script>\n);
+}
 	print INDEX "</body>\n</html>\n";
 	close(INDEX);
 
