@@ -1,0 +1,40 @@
+#!/usr/bin/perl
+# ----------------------------------------------------------------------
+# A script contributed by Michael Bain to generate the thumbs and 
+# images files, given the originals directory is present and populated.
+# >>> Requires the 'ImageMagick' package <<<
+#
+# Note: this script assumes ALL the files in the 'originals' directory 
+# are image files.  If that isn't true an error message (or two) will 
+# be produced and the file ignored.  It will handle just about any
+# image file format there is -- certainly more formats than your browser
+# is capable of rendering in a Web page...
+# ----------------------------------------------------------------------
+
+# The next five lines contain values you can change in order to
+# alter the behavior of this script.  The first two should probably
+# remain as-is, but you may wish to alter the thumbnail size 
+# (default 100x100) or the 'images' size.  For example, if you want
+# the images (the photos that will appear on each individual HTML
+# page) to be a consistant size, you could change that line to read:
+# $isize = "500x500" and the script will make them 500 pixels wide
+# or high in the largest dimension.
+
+	$orig   = "originals";	# Directory name for the original photos
+	$thumbs = "thumbs";		# Directory name for thumbnails
+	$images = "images";		# Directory name for 'normal' sized images
+	$tsize  = "100x100";	# Max thumbnail dimensions
+	$isize  = "60\%";		# image files will be 60% of original size
+
+	opendir(ORIG,$orig) or die "Missing '$orig' directory?\n";
+
+	mkdir($thumbs);		# If these directories already exist
+	mkdir($images);		# ...then these commands do nothing
+
+	while ($filename = readdir(ORIG)) {
+		next if $filename =~ /^\.[\.]?$/;
+		print "Making thumbnail of $filename ...\n";
+		system("convert -geometry $tsize $orig/$filename $thumbs/$filename");
+		print "Reducing $filename ...\n";
+		system("convert -geometry $isize $orig/$filename $images/$filename");
+		}

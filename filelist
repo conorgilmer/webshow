@@ -1,0 +1,35 @@
+# ---------------------
+# Example filelist file
+# ---------------------
++TOPPAGE: ix.html
++TITLE: This is the Page Title
++DESCRIPTION: And this is the text at the beginning of the page.
+	You can continue with as much text as you want here by indenting
+	each line with a &lt;TAB&gt; character.  You can also put HTML here
+	if you want.<p>
+	Click on an image to start the show.  From there you can navigate
+	forwards, backwards, or back here.  When you click on an
+	image it will take you to a larger version.
++COPYRIGHT: Copyright &#169; 2002-2004 by H. Marc Lewis
+	All rights reserved.
+
+750SS.jpg | 
+Aprilia.jpg |
+cavelake.jpg | By the way, all these photos are
+	Copyright &#169; 2003 by H Marc Lewis.  All rights reserved.
+Chatcolet.jpg |
+Columbia.jpg |
+FJR1300.jpg |
+Hyder-AK.jpg | Hyder, Alaska
+LoloPass.jpg |
+RattleSnakeGrade.jpg |
+StoneHenge.jpg |
+
++SECTION:  Non-motorcycle photos |
+	These photos don't have much to do with motorcycles, but they
+	serve to show how you can use the sub-title feature to break the 
+	top-level page into sections, as might be appropriate for various
+	subjects...
+
+Pie.jpg | Wonderful pie from Huckleberry Heaven, Elk River, ID
+Pumpkins.jpg 

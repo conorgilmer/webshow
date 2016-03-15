@@ -1,0 +1,303 @@
+<html>
+<head>
+<link rel="stylesheet" href="webshow.css" type="text/css">
+<title>Webshow</title>
+</head>
+<body bgcolor="#FFFFF">
+<div align="center">
+<h1>webshow</h1>
+<p>
+A Perl script for generating Web-based slide shows<br>
+<span class="normal"><font color="#FF0000">
+<i>V1.5 &nbsp;&#149;&nbsp; H. Marc Lewis &nbsp;&#149;&nbsp; 25-Aug-2004</i>
+</font></span><p>
+</div>
+<hr>
+<p class="normal">
+This page describes a Perl script I wrote for generating nicely formatted
+slide shows via HTML pages.  It won't do all the work (you'll need an image
+manipulation utility too), but it will make it pretty darn easy once you
+have the photos sized properly.
+
+<p class="normal">
+You can grab the stuff you'll need here via this <a href="webshow.tar"><b>tar
+file</b></a>.  Unpack it in the top-level directory where you want your
+slideshow to reside. 
+&nbsp; [Windows users note: WinZIP can unpack it for you] 
+&nbsp; You'll also need to create a few directories, so the
+resultant top-level directory will contain:
+
+<code class="normal">
+<pre>
+	html            - Generated HTML pages will go here
+	images          - Intermediate sized images go here
+	originals       - Originals go here (unless you use the -o option)
+	thumbs          - Thumbnail versions go here
+	ButtonLeft.gif  - Buttons used by the pages
+	ButtonRight.gif
+	ButtonTop.gif
+	webshow         - The webshow script itself
+	webshow.css     - A CSS file used by the HTML pages
+	myrename        - A quick-n-dirty Perl script to rename files
+	filelist        - The ASCII text file that controls things
+</pre>
+</code>
+
+<p class="normal">
+It works like this: you put all your photos into the <u>originals</u>
+directory.  Use a photo manipulation utility to create thumbnails in the
+<u>thumbs</u> directory, and medium sized versions in the <u>images</u>
+directory.  Thus for any given image, there will be three files, each with
+the same identical name, in the three directories: thumbs, images,
+originals.  The only difference in them will be their size in pixels.
+I use a max of 100x100 for the thumbs, and 512x512 for the images.  You can
+use whatever sizes you like, the script doesn't care.
+
+<p class="normal">
+If you don't want to bother with 3 sizes of each photo, you can omit the
+<u>originals</u> directory and put the original photos instead directly
+into the <u>images</u> directory.  In that case, you will run
+<tt><b>webshow</b></tt> with the <tt><b>-o</b></tt> option -- 
+thus it won't require an
+<u>originals</u> directory, and won't turn the photos on the individual
+HTML pages into links (as it would normally).
+
+<p class="normal">
+Then create the <u>filelist</u> file, which contains the names of the image
+files, one per line.  I use the Unix command 
+"<tt><b>ls -1 originals >filelist</b></tt>" or the MS-DOS command 
+"<tt><b>DIR/B originals >filelist</b></tt>" to initially generate the
+<u>filelist</u> file.
+
+<p class="normal">
+Then I edit the <u>filelist</u> file according to the following rules:
+
+<ol class="normal">
+<li style="padding-bottom: 0.5em">
+	All lines with a '#' character in column 1 are treated as comments
+	and ignored.  Blank lines are also ignored, and can be used to 
+	make the source more readable.
+<li style="padding-bottom: 0.5em">
+	Lines beginning with a plus sign (+) are "magic" as follows:
+	<table border=0 cellpadding=3 class="normal">
+
+	<tr><td valign="top"><b>+TopPage: xxx</b></td>
+	<td>Specifies the filename for the top level page (the default
+	is <u>index.html</u>).  'xxx' is the filename.</td></tr>
+
+	<tr><td valign="top"><b>+TITLE: xxx</b></td>
+	<td>Defines a title for the top-level Webpage.  The 'xxx' becomes the 
+	text of the title.</td></tr>
+
+	<tr><td valign="top"><b>+DESCRIPTION: xxx</b></td>
+	<td>Provides some textual description for the page, which appears
+	right below the title.  'xxx' is the text.</td></tr>
+
+	<tr><td valign="top"><b>+COPYRIGHT: xxx</b></td>
+	<td>A place for you to specify a copyright notice (the 'xxx' text)
+	to be displayed
+	at the bottom of every page.  See the example for the code to
+	produce a copyright symbol.</td></tr>
+
+	<tr><td valign="top"><b>+SECTION:&nbspxxx&nbsp|&nbspyyy </b></td>
+	<td>Defines a section header, to break the top page into sections.
+	The 'xxx' becomes an &lt;H2&gt; html tag, and the 'yyy' becomes
+	the description below it.  You can leave out the 'yyy' part if you
+	wish, but if you include it you must separate it from the 'xxx'
+	part with a vertical bar (|).  </td></tr>
+	</table>
+
+	You don't have to include any of the above, but they are there to
+	make the resultant Webpages more informative and useful.
+
+<li style="padding-bottom: 0.5em">
+	Subsequent non-comment lines are assumed to contain the filename of
+	an image.  These lines can contain descriptive text, which will 
+	appear on the Web page generated for this photo.  A vertical bar '|'
+	character separates the filename from the description.  The description
+	is optional.
+<li style="padding-bottom: 0.5em">
+	Any line may be 'continued' by indenting the following continuation
+	line with a &lt;TAB&gt; character.  This is generally needed for the
+	+SECTION: line, and the +DESCRIPTION: lines. See the example below.
+</ol>
+
+<h3>An Example</h3>
+<div align="center">
+<!-- img src="webshow.jpg" WIDTH=699 HEIGHT=577><br -->
+<!-- img src="webshow2.jpg" WIDTH=610 HEIGHT=586><br -->
+<img src="webshow.jpg" WIDTH=636 HEIGHT=821><br>
+<p class="normal">
+The example filelist below generates <a href="default.html"><b>this 
+Web page</b></a>.
+</div>
+
+<p>
+<table border=1 cellspacing=0 cellpadding=10><tr><td bgcolor="#FFFFFF">
+<code>
+<pre>
+# ---------------------
+# Example filelist file
+# ---------------------
++TITLE: This is the Page Title
++DESCRIPTION: And this is the text at the beginning of the page.
+	You can continue with as much text as you want here by indenting
+	each line with a &lt;TAB&gt; character.  You can also put HTML here
+	if you want.&lt;p&gt;
+	Click on an image to start the show.  From there you can navigate
+	forwards, backwards, or back here.  When you click on an
+	image it will take you to a larger version.
++COPYRIGHT: Copyright &#169; 2002-2004 by H. Marc Lewis.
+	All rights reserved.
+
+750SS.jpg | 
+Aprilia.jpg |
+cavelake.jpg | By the way, all these photos are 
+	Copyright &#169; 2003 by H Marc Lewis.  All rights reserved.
+Chatcolet.jpg |
+Columbia.jpg |
+FJR1300.jpg |
+Hyder-AK.jpg | Hyder, Alaska
+LoloPass.jpg |
+RattleSnakeGrade.jpg |
+StoneHenge.jpg |
+
++SECTION: Non-motorcycle photos |
+	These photos don't have much to do with motorcycles, but they
+	serve to show how you can use the sub-title feature to break the 
+	top-level page into sections, as might be appropriate for various
+	subjects...
+
+Pie.jpg | Wonderful pie from Huckleberry Heaven, Elk River, ID
+Pumpkins.jpg 
+</pre> </code> </td></tr>
+</table>
+
+<p class="normal">
+The webshow script can be configured somewhat, see the first few lines in
+the Perl script.  However, it does expect the input file <u>filelist</u> to
+exist and be so named.  It also expects (and checks for) the proper
+directories to exist.  It produces a single "I'm done" line noting how many
+image files it found for which it generated Web pages.
+
+<h3>What webshow does</h3>
+
+<p class="normal">
+Each time you run <tt><b><u>webshow</u></b></tt>
+it reads the <u>filelist</u> file and
+generates one HTML file in the <u>html</u> directory for every file listed
+in the <u>filelist</u> file.  It also creates the top-level directory index
+page (generally <u>index.html</u>).
+It doesn't do anything with the image files, and doesn't even read the
+image, thumbs, or originals directory.  So even if the image files aren't
+there, it will still do its job -- though the resultant HTML pages will have
+broken links.
+
+<p class="normal">
+If you run <tt><b><u>webshow&nbsp;-o</u></b></tt> instead, 
+the only difference in
+operation is that it won't expect there to be an <u>originals</u>
+directory, and it won't generate any links to the large-sized photos that
+would normally be stored there.
+
+<p class="normal">
+The 'development cycle' I use is to edit the <u>filelist</u> file, then run
+<u>webshow</u>, then look at the Web pages just generated,
+and repeat until I'm satisfied with the results.
+
+<p class="normal">
+Examples:
+<p>
+<ul>
+<table border=0 cellpadding=4 cellspacing=0>
+<tr><td> <tt><b>webshow</b></tt> </td>
+	<td class="normal"> <i> -- the 'normal' case</i> </td> </tr>
+<tr><td> <tt><b>webshow -o</b></tt> </td>
+	<td class="normal"> <i> -- omit the 'originals' directory and 
+	links to it</i> </td> </tr>
+<tr><td> <tt><b>webshow whatever.html</b></tt> </td>
+	<td class="normal"> <i> -- create 'whatever.html' instead of the 
+	default (index.html)</i>
+	</td> </tr>
+</table>
+</ul>
+
+<h3>Notes</h3>
+
+<ol class="normal">
+<li style="padding-bottom: 0.5em">
+	You can omit photos from the show by simply deleting the appropriate
+        line in the <u>filelist</u> file.
+
+<li style="padding-bottom: 0.5em">
+     You can rearrange the order in which the photos are displayed by
+		rearranging the lines in the <u>filelist</u> file.
+
+<li style="padding-bottom: 0.5em">
+    Feel free to modify the CSS file <a href="webshow.txt">webshow.css</a>
+	to suit your tastes.  The version included here suits me, but you 
+	may prefer another style.
+</ol>
+
+<h3>Obtaining Perl</h3>
+<p class="normal">
+Linux/Unix users already have Perl.  For you Windoze folks, 
+<a href="http://aspn.activestate.com/ASPN/Downloads/ActivePerl/index/">
+ActiveState</a> has a fine port pre-compiled for various flavors of
+Windows.  I've successfully used the Windows version of Perl to create 
+slideshows with this version of <u>webshow</u> on Win98SE, Win2k and
+Windows XP Pro systems.  There are also ports of Perl for the Apple
+(various operating systems).
+
+<h3>Other tools</h3>
+<p class="normal">
+I used two tools to generate the images and thumbnails, and found 
+<a href="http://www.lview.com/">LVIEW-PRO</a> (in batch mode)
+to be the easy way to go.  I liked WEB IMAGE GURU as it did "smart"
+thumbnails, allowing you to thumbnail just the "important" part of the
+photo, but it didn't always work right and took forever.  [my friend
+Lee prefers a utility called 
+<a href="http://www.acdsystems.com/english/products/acdsee/acdsee-node.htm">
+ACDSee</a>].  
+You can get functional eval copies from 
+<a href="http://www.tucows.com">Tucows</a> 
+or <a href="http://www.downloads.com">downloads.com</a>.
+Just about any tool that will create thumbnails in batch mode will work
+fine -- you can even do it by hand if necessary, you only have to do it
+once...
+
+<p class="normal">
+Michael Bain contributed a script which I have named
+<tt><u><b>mikes-script</b></u></tt> and included in the
+<a href="webshow.tar"><b>tar file</b></a>.
+It uses the ImageMagick package (commonly found on Unix/Linux
+systems) to auto-generate the <u>thumbs</u> and <u>images</u> files, given the 
+<u>originals</u> directory is populated with your photos.
+It's very short, and you can easily modify it to suit your needs.
+
+<p class="normal">
+Thanks to Jack Tavares for the enhancement to add a
+user-specifiable copyright notice.
+
+<h3>Postscript</h3>
+
+<p class="normal">
+It is really pretty simple to use, once you get the hang of it.  If you
+make anything more than minor changes to 'webshow', I'd appreciate it if
+you 
+<a href="mailto:hmarc@micapeak.com">send me</a> a copy.  Thanks!
+
+<p class="normal">
+BTW -- There's a real-life example implementing a slideshow of an
+<a href="http://www.micapeak.com/WetLeather/tours/alps2001/marc/">
+Alps tour</a> I did in 2001.  It used an early-release (Aug-2001) version of
+<u>webshow</u>.
+Another more current version is a trip to 
+<a href="http://www.micapeak.com/rides/Baja-2004/">
+Baja, Mexico by motorcycle</a> which I did in March of 2004.
+
+<p class="normal" align="right">
+<a href="mailto:hmarc@micapeak.com">HMarc</a> -- December, 2003
+
+</body>
+</html>

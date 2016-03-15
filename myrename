@@ -1,0 +1,16 @@
+#!/usr/bin/perl
+
+	my $fileno = 0;
+	my $title;
+	my $page;
+
+	open(FILE,"<filelist") or die "Can't open filelist\n";
+	while (<FILE>) {
+		chomp;
+		if (/\.jpg$/ || /\.JPG$/) {
+			rename($_,lc($_));
+			next;
+			}
+		print "$_\n";
+		}
+	close(FILE);

@@ -1,0 +1,282 @@
+#!/usr/bin/perl
+# -------------------------------------------------------------------
+#  A Perl script to generate a Web page of thumbnail photos, each of
+#  which is linked to another Webpage with a medium-sized photo plus
+#  text description.  The medium-sized photo becomes a link to the 
+#  original, fullsized image (for printing purposes).
+#
+#  Copyright (c) 2001-2004 by H. Marc Lewis.  Permission granted for
+#  use and modification, provided a copy of the modified version
+#  is sent to marc@micapeak.com (exempting trivial mods).
+# -------------------------------------------------------------------
+#
+# VERSION 1.5 ++ 25-Aug-2004
+
+use strict;
+
+	my $topPage = "index.html";		# The name of the top-level page
+	my $cols    = 5;				# Number of thumbnails per row
+	my $fileno  = 0;
+
+	my ($title, $page, $description, $copyright, $filename, $nextname);
+	my ($x, $first, $last, $num, $mon, $mday, $year, $string, $photos);
+	my ($wantOriginals, @lines);
+	my @months = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
+
+	# -----------------------------------------------------
+	# See if we need to do the 'originals' directory or not
+	# -----------------------------------------------------
+	$wantOriginals = 1;
+	while (($x = shift(@ARGV)) ne "") {
+		if ($x eq "-o") {
+			$wantOriginals = 0;
+			}
+		else {
+			$topPage = $x;
+			}
+		}
+
+	# ----------------------------------------
+	# Make sure the required directories exist
+	# ----------------------------------------
+	$x = 0;
+	$x += makeSure("html");
+	$x += makeSure("images");
+	$x += makeSure("thumbs");
+	$x += makeSure("originals") if ($wantOriginals);
+	exit if ($x);
+
+	open(FILE,"<filelist") or die "Can't open filelist\n";
+
+	# -----------------------------------------------
+	# First suck the filelist into an array, and join
+	# the continuation lines to the filename line
+	# -----------------------------------------------
+	while (<FILE>) {
+		chomp;
+		next if (/^#/);		# Ignore comment lines
+		next if (/^\s*$/);	# ...and blank lines too
+		if (/^\t/) {
+			$lines[$fileno-1] .= $_;
+			}
+		else {
+			$lines[$fileno++] = $_;
+			}
+		}
+	close(FILE);
+
+	# -------------------------------------------------
+	# Save the leading TITLE, DESCRIPTION and COPYRIGHT 
+	# lines as they get treated differently...
+	# -------------------------------------------------
+	while ($lines[0] =~ m|^\+|) {
+		if ($lines[0] =~ s/^\+title://i) {
+			$title = $lines[0];
+			shift(@lines);
+			--$fileno;
+			next;
+			}
+		if ($lines[0] =~ s/^\+description://i) {
+			$description = $lines[0];
+			shift(@lines);
+			--$fileno;
+			next;
+			}
+		if ($lines[0] =~ s/^\+copyright://i) {
+			$copyright = $lines[0];
+			shift(@lines);
+			--$fileno;
+			next;
+			}
+		if ($lines[0] =~ s/^\+toppage:\s*//i) {
+			$topPage = $lines[0];
+			shift(@lines);
+			--$fileno;
+			next;
+			}
+		if ($lines[0] =~ m|^\+|) {
+			# any other line starting with '+' gets processed
+			# along with the image filenames in the mail loop
+			last;
+			}
+		}
+	open(INDEX,">$topPage") or die "Can't open $topPage\n";
+
+	# ----------------------------------------------------------------
+	# Write the beginning bit of HTML for the top-level thumbnail page
+	# ----------------------------------------------------------------
+	print INDEX <<TOP;
+<html>
+<head>
+<link rel="stylesheet" href="webshow.css" type="text/css">
+<title>$title</title>
+</head>
+<body>
+<h2 align="center">$title</h2>
+<div align="center">
+<table cellpadding=5>
+<tr><td colspan=$cols>$description<p></td></tr>
+<tr>
+TOP
+
+	# ----------------------------------------------
+	# Now write the HTML for each thumbnail and link,
+	# treating the first and last specially so they
+	# won't have 'dead' backward/forward buttons.
+	# ----------------------------------------------
+	$num = 0;
+	$photos = 0;
+	$first = 1;
+	for ($x = 0; $x < $fileno; ++$x) {
+		($filename,$description) = split(/\|/,$lines[$x]);
+		#print "$filename\n";	# UNCOMMENT TO SEE VISUAL PROGESS...
+        $filename =~ s/\s+$//;	# trim off trailing whitespace
+		$last  = ($x == ($fileno-1));
+		if ($filename =~ s/^\+section://i) {
+			# Generate a section header
+			while ($num % $cols) {
+				print INDEX "<td>\&nbsp;</td>\n";
+				++$num;
+				}
+			print INDEX qq(<tr><td colspan="$cols">\&nbsp;<p><h2>);
+			if ($description eq "") {
+				print INDEX qq($filename</h2></td></tr>\n);
+				}
+			else {
+				print INDEX qq($filename</h2>$description</td></tr>\n);
+				}
+			}
+		else {
+			process($filename,$photos,$description,$title,$first,$last,$topPage);
+			$first = 0;
+			++$num;
+			$page = sprintf("html/H%04d.html",$photos++);
+			print INDEX <<THUMBSTUFF;
+<td align="center" valign="middle">
+<a href="$page">
+<img src="thumbs/$filename" border=1>
+</a></td>
+THUMBSTUFF
+			if (($num % $cols) == 0) {
+				print INDEX "</tr><tr>\n";
+				}
+			}
+		}
+
+	# --------------------------------------------
+	# Add the date to the bottom of the index page
+	# --------------------------------------------
+	($x,$x,$x,$mday,$mon,$year) = localtime(time);
+	$year += 1900;
+	#$mon++;
+	$mday = "0" . $mday if ($mday < 10);
+	$mon  = "0" . $mon if ($mon < 10);
+	$string = "$mday-$months[$mon]-$year";
+	#$string = "$mday/$mon/$year";
+
+	# ---------------------------------------------
+	# Write the final bit of HTML to the index page
+	# ---------------------------------------------
+	print INDEX "</tr>\n </table><p>\n";
+	print INDEX qq(<span class="sm">Produced by Marc's );
+	print INDEX qq("<a href="http://www.micapeak.com/webshow">webshow</a>" );
+	print INDEX qq(Perl script v1.5 on $string<br>);
+	print INDEX qq($copyright\n</span></div>\n);
+	print INDEX "</body>\n</html>\n";
+	close(INDEX);
+
+	# ------------------------------------
+	# Sign off with an informative message
+	# ------------------------------------
+	if ($photos) {
+		print "$photos HTML files created (plus $topPage)\n";
+		}
+	else {
+		print "NO FILES CREATED (empty filelist?)\n";
+		}
+	1;
+
+
+# ========================================================
+#  Subroutine to write the Webpage in the html/ directory
+#  corresponding to the thumbnail on the index page.
+# ========================================================
+sub process($$$$$$$)
+{
+	my $filename      = shift;
+	my $fileno        = shift;
+	my $description   = shift;
+	my $title         = shift;
+	my $first		  = shift;
+	my $last		  = shift;
+	my $top           = shift;
+	my $html          = sprintf("html/H%04d.html",$fileno);
+	my $left          = sprintf("H%04d.html",$fileno-1);
+	my $right         = sprintf("H%04d.html",$fileno+1);
+	my ($orig1, $orig2);
+
+	$top              = "../$top";
+	open(IMAGE,">$html") or die "Can't open $html\n";
+    if ($wantOriginals) {
+        $orig1 = qq(<a href="../originals/$filename">\n);
+        $orig2 = qq(</a>\n);
+        }
+    else {
+        $orig1 = "";
+        $orig2 = "";
+        }                            
+	print IMAGE <<IMAGESTUFF;
+<html>
+<head>
+<link rel="stylesheet" href="../webshow.css" type="text/css">
+<title>$title</title>
+</head>
+<body>
+<div align="center">
+<h2>$title</h2>
+IMAGESTUFF
+	if (!$first) {
+		print IMAGE qq(<a href="$left">);
+		print IMAGE qq(<img src="../ButtonLeft.gif" border=0></a> &nbsp;\n);
+		}
+	print IMAGE qq(<a href="$top">);
+	print IMAGE qq(<img src="../ButtonTop.gif" border=0></a> &nbsp;\n);
+	if (!$last) {
+		print IMAGE qq(<a href="$right">);
+		print IMAGE qq(<img src="../ButtonRight.gif" border=0></a>\n);
+		}
+	print IMAGE <<IMAGEREST;
+<p>
+$orig1
+<img src="../images/$filename" border=1>
+$orig2
+<p>
+$description
+<p align="center" class="sm">
+$copyright
+</p>
+</div>
+</body>
+</html>
+IMAGEREST
+	close(IMAGE);
+}
+
+sub makeSure($)
+{
+	my	$filename = shift;
+
+	if (! -e $filename) {
+		print "ERROR: directory $filename not found\n";
+		return(1);
+		}
+	if (! -d $filename) {
+		print "ERROR: $filename is not a directory\n";
+		return(1);
+		}
+	if ((! -w $filename) || (! -x $filename)) {
+		print "ERROR: directory $filename not writable and/or searchable\n";
+		return(1);
+		}
+	return(0);
+}

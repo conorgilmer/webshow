@@ -1,0 +1,16 @@
+BODY { font-family: Georgia, Arial; font-size: 12pt; }
+TD   { font-family: Verdana; font-size: 10pt; }
+.FIX { font-family: "Courier New"; font-size: 10pt; }
+.note { 
+	font-family: "Times New Roman";
+	font-size: 11pt;
+	font-style: italic;
+	color: blue;
+	}
+.sm  { font-family: Verdana; font-size: 8pt; }
+.lt  { font-family: Verdana; font-size: 8pt; color: #BBBBBB; }
+.normal { font-family: Verdana; font-size: 10pt; color: #8B0000; }
+H2   { font-family: Georgia; font-size: 16pt; }
+H3   { font-family: Georgia; font-size: 14pt; }
+P.m  { margin-left: 2em; }
+.grey { background-color: #FFCC33; text-align: center; font-weight: bold; }
